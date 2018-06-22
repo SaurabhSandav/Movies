@@ -4,4 +4,6 @@
     <string name="activity_main_sort">Sort</string>
     <string name="activity_main_sort_popular">Popular</string>
     <string name="activity_main_sort_top_rated">Top Rated</string>
+
+    <string name="con_desc_movie_poster">Movie Poster</string>
 </resources>

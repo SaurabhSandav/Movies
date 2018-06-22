@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="movie"
+            type="com.redridgeapps.movies.model.tmdb.Movie" />
+
+    </data>
+
+    <FrameLayout
+        style="@style/SelectableItemBackground"
+        android:layout_width="@dimen/default_movie_poster_width"
+        android:layout_height="@dimen/default_movie_poster_height"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:id="@+id/iv_movie_list_poster"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/con_desc_movie_poster"
+            android:scaleType="fitXY"
+            app:imageUrl="@{movie.getPosterURL()}" />
+
+    </FrameLayout>
+
+</layout>

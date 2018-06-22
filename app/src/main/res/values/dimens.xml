@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="default_movie_poster_width">170dp</dimen>
+    <dimen name="default_movie_poster_height">255dp</dimen>
+
+</resources>
