@@ -5,6 +5,7 @@ import android.app.Application;
 import com.redridgeapps.movies.App;
 import com.redridgeapps.movies.di.modules.ActivityBuilder;
 import com.redridgeapps.movies.di.modules.AppModule;
+import com.redridgeapps.movies.di.modules.viewmodel.ViewModelFactoryModule;
 
 import javax.inject.Singleton;
 
@@ -18,7 +19,8 @@ import dagger.android.support.AndroidSupportInjectionModule;
         modules = {
                 AndroidSupportInjectionModule.class,
                 ActivityBuilder.class,
-                AppModule.class
+                AppModule.class,
+                ViewModelFactoryModule.class
         }
 )
 interface AppComponent extends AndroidInjector<App> {
