@@ -1,5 +1,6 @@
 package com.redridgeapps.movies.api;
 
+import com.redridgeapps.movies.BuildConfig;
 import com.redridgeapps.movies.model.tmdb.MovieCollection;
 
 import io.reactivex.Single;
@@ -9,6 +10,7 @@ import retrofit2.http.Query;
 public interface TMDbService {
 
     String BASE_URL = "https://api.themoviedb.org/3/";
+    String TMDB_API_KEY = BuildConfig.TMDB_API_KEY;
 
     @GET("movie/top_rated")
     Single<MovieCollection> getTopRated(
