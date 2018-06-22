@@ -5,10 +5,17 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
 
+import com.readystatesoftware.chuck.ChuckInterceptor;
+import com.redridgeapps.movies.api.TMDbService;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.moshi.MoshiConverterFactory;
 
 @Module
 public abstract class AppModule {
@@ -23,5 +30,53 @@ public abstract class AppModule {
     @Singleton
     public static SharedPreferences provideSharedPreferences(Application app) {
         return PreferenceManager.getDefaultSharedPreferences(app);
+    }
+
+    @Provides
+    @Singleton
+    public static ChuckInterceptor provideChuckInterceptor(Application app) {
+        return new ChuckInterceptor(app);
+    }
+
+    @Provides
+    @Singleton
+    public static OkHttpClient provideOkHttpClient(ChuckInterceptor chuckInterceptor) {
+        return new OkHttpClient()
+                .newBuilder()
+                .addInterceptor(chuckInterceptor)
+                .build();
+    }
+
+    @Provides
+    @Singleton
+    public static Retrofit provideRetrofit(
+            OkHttpClient okHttpClient,
+            MoshiConverterFactory moshiCon,
+            RxJava2CallAdapterFactory rxCallAdapter
+    ) {
+        return new Retrofit.Builder()
+                .baseUrl(TMDbService.BASE_URL)
+                .client(okHttpClient)
+                .addConverterFactory(moshiCon)
+                .addCallAdapterFactory(rxCallAdapter)
+                .build();
+    }
+
+    @Provides
+    @Singleton
+    public static RxJava2CallAdapterFactory provideRxJava2CallAdapterFactory() {
+        return RxJava2CallAdapterFactory.create();
+    }
+
+    @Provides
+    @Singleton
+    public static MoshiConverterFactory provideMoshiConverterFactory() {
+        return MoshiConverterFactory.create();
+    }
+
+    @Provides
+    @Singleton
+    public static TMDbService provideTMDbService(Retrofit retrofit) {
+        return retrofit.create(TMDbService.class);
     }
 }
