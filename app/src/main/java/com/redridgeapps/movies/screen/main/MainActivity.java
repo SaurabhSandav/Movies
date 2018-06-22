@@ -6,12 +6,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.redridgeapps.movies.R;
+import com.redridgeapps.movies.databinding.ActivityMainBinding;
 import com.redridgeapps.movies.screen.base.BaseActivity;
 import com.redridgeapps.movies.util.Constants;
 
 import javax.inject.Inject;
 
-public class MainActivity extends BaseActivity<MainViewModel> {
+public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBinding> {
 
     @Inject
     public SharedPreferences prefs;
@@ -21,12 +22,16 @@ public class MainActivity extends BaseActivity<MainViewModel> {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
         sort = prefs.getString(Constants.KEY_SORT_MAIN, Constants.DEFAULT_SORT_MAIN);
 
         getViewModel().setSort(sort);
         getViewModel().refreshMovies();
+    }
+
+    @Override
+    protected int provideLayout() {
+        return R.layout.activity_main;
     }
 
     @Override
