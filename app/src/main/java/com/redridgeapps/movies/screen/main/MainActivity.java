@@ -26,6 +26,7 @@ public class MainActivity extends BaseActivity<MainViewModel> {
         sort = prefs.getString(Constants.KEY_SORT_MAIN, Constants.DEFAULT_SORT_MAIN);
 
         getViewModel().setSort(sort);
+        getViewModel().refreshMovies();
     }
 
     @Override
@@ -76,5 +77,6 @@ public class MainActivity extends BaseActivity<MainViewModel> {
         prefs.edit().putString(Constants.KEY_SORT_MAIN, sort).apply();
 
         getViewModel().setSort(sort);
+        getViewModel().refreshMovies();
     }
 }
