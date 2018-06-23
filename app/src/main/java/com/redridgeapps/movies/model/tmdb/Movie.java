@@ -1,5 +1,6 @@
 package com.redridgeapps.movies.model.tmdb;
 
+import com.redridgeapps.movies.api.TMDbService;
 import com.squareup.moshi.Json;
 
 import java.util.List;
@@ -158,5 +159,9 @@ public class Movie {
 
     public void setVoteAverage(double voteAverage) {
         this.voteAverage = voteAverage;
+    }
+
+    public String getPosterURL() {
+        return TMDbService.buildPosterURL(this.posterPath);
     }
 }
