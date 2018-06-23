@@ -2,6 +2,7 @@ package com.redridgeapps.movies.screen.main;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -25,6 +26,7 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
 
         sort = prefs.getString(Constants.KEY_SORT_MAIN, Constants.DEFAULT_SORT_MAIN);
 
+        setupRecyclerView();
         getViewModel().setSort(sort);
         getViewModel().refreshMovies();
     }
@@ -83,5 +85,22 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
 
         getViewModel().setSort(sort);
         getViewModel().refreshMovies();
+    }
+
+    private void setupRecyclerView() {
+
+        // Calculate poster size to be relative to screen size
+        float presetItemWidth = getResources().getDimension(R.dimen.default_movie_poster_width);
+        int fullWidth = getResources().getDisplayMetrics().widthPixels;
+        int columns = (int) Math.ceil(fullWidth / presetItemWidth);
+        int itemWidth = fullWidth / columns;
+
+        MovieListAdapter adapter = new MovieListAdapter(itemWidth);
+
+        getBinding().recyclerView.setLayoutManager(new GridLayoutManager(this, columns));
+        getBinding().recyclerView.setAdapter(adapter);
+        getBinding().recyclerView.setHasFixedSize(true);
+
+        getViewModel().getMovies().observe(this, adapter::submitList);
     }
 }
