@@ -1,5 +1,7 @@
 package com.redridgeapps.movies.model.tmdb;
 
+import android.support.v7.util.DiffUtil;
+
 import com.redridgeapps.movies.api.TMDbService;
 import com.squareup.moshi.Json;
 
@@ -164,4 +166,17 @@ public class Movie {
     public String getPosterURL() {
         return TMDbService.buildPosterURL(this.posterPath);
     }
+
+    public static final DiffUtil.ItemCallback<Movie> DIFF_CALLBACK = new DiffUtil.ItemCallback<Movie>() {
+
+        @Override
+        public boolean areItemsTheSame(Movie oldItem, Movie newItem) {
+            return oldItem.getId().equals(newItem.getId());
+        }
+
+        @Override
+        public boolean areContentsTheSame(Movie oldItem, Movie newItem) {
+            return true;
+        }
+    };
 }
