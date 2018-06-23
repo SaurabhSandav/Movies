@@ -10,7 +10,13 @@ import retrofit2.http.Query;
 public interface TMDbService {
 
     String BASE_URL = "https://api.themoviedb.org/3/";
+    String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/";
     String TMDB_API_KEY = BuildConfig.TMDB_API_KEY;
+    String DEFAULT_IMAGE_POSTER_SIZE = "w342";
+
+    static String buildPosterURL(String path) {
+        return IMAGE_BASE_URL + DEFAULT_IMAGE_POSTER_SIZE + path;
+    }
 
     @GET("movie/top_rated")
     Single<MovieCollection> getTopRated(
