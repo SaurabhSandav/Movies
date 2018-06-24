@@ -5,12 +5,12 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.redridgeapps.movies.R;
 import com.redridgeapps.movies.databinding.ActivityMainBinding;
 import com.redridgeapps.movies.model.tmdb.Movie;
 import com.redridgeapps.movies.screen.base.BaseActivity;
+import com.redridgeapps.movies.screen.detail.DetailActivity;
 import com.redridgeapps.movies.util.Constants;
 
 import javax.inject.Inject;
@@ -112,6 +112,6 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
     }
 
     private void handleListClick(Movie movie) {
-        Toast.makeText(this, movie.getTitle(), Toast.LENGTH_SHORT).show();
+        startActivity(DetailActivity.createIntent(MainActivity.this, movie));
     }
 }
