@@ -5,9 +5,11 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.redridgeapps.movies.R;
 import com.redridgeapps.movies.databinding.ActivityMainBinding;
+import com.redridgeapps.movies.model.tmdb.Movie;
 import com.redridgeapps.movies.screen.base.BaseActivity;
 import com.redridgeapps.movies.util.Constants;
 
@@ -83,12 +85,11 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
 
         prefs.edit().putString(Constants.KEY_SORT_MAIN, sort).apply();
 
+        adapter = new MovieListAdapter(itemWidth, this::handleListClick);
+        getBinding().recyclerView.setAdapter(adapter);
+
         getViewModel().setSort(sort);
-        getViewModel().getMovies().observe(this, movies -> {
-            adapter = new MovieListAdapter(itemWidth);
-            getBinding().recyclerView.setAdapter(adapter);
-            adapter.submitList(movies);
-        });
+        getViewModel().getMovies().observe(this, adapter::submitList);
     }
 
     private void setupRecyclerView() {
@@ -99,7 +100,7 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         int columns = (int) Math.ceil(fullWidth / presetItemWidth);
         itemWidth = fullWidth / columns;
 
-        adapter = new MovieListAdapter(itemWidth);
+        adapter = new MovieListAdapter(itemWidth, this::handleListClick);
 
         getBinding().recyclerView.setLayoutManager(new GridLayoutManager(this, columns));
         getBinding().recyclerView.setAdapter(adapter);
@@ -108,5 +109,9 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         getViewModel().setSort(sort);
 
         getViewModel().getMovies().observe(this, adapter::submitList);
+    }
+
+    private void handleListClick(Movie movie) {
+        Toast.makeText(this, movie.getTitle(), Toast.LENGTH_SHORT).show();
     }
 }
