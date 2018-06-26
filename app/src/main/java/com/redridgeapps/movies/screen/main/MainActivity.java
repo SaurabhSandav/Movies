@@ -18,7 +18,9 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
     @Inject
     public SharedPreferences prefs;
 
+    private MovieListAdapter adapter;
     private String sort;
+    private int itemWidth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,8 +29,6 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         sort = prefs.getString(Constants.KEY_SORT_MAIN, Constants.DEFAULT_SORT_MAIN);
 
         setupRecyclerView();
-        getViewModel().setSort(sort);
-        getViewModel().refreshMovies();
     }
 
     @Override
@@ -84,7 +84,11 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         prefs.edit().putString(Constants.KEY_SORT_MAIN, sort).apply();
 
         getViewModel().setSort(sort);
-        getViewModel().refreshMovies();
+        getViewModel().getMovies().observe(this, movies -> {
+            adapter = new MovieListAdapter(itemWidth);
+            getBinding().recyclerView.setAdapter(adapter);
+            adapter.submitList(movies);
+        });
     }
 
     private void setupRecyclerView() {
@@ -93,13 +97,15 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         float presetItemWidth = getResources().getDimension(R.dimen.default_movie_poster_width);
         int fullWidth = getResources().getDisplayMetrics().widthPixels;
         int columns = (int) Math.ceil(fullWidth / presetItemWidth);
-        int itemWidth = fullWidth / columns;
+        itemWidth = fullWidth / columns;
 
-        MovieListAdapter adapter = new MovieListAdapter(itemWidth);
+        adapter = new MovieListAdapter(itemWidth);
 
         getBinding().recyclerView.setLayoutManager(new GridLayoutManager(this, columns));
         getBinding().recyclerView.setAdapter(adapter);
         getBinding().recyclerView.setHasFixedSize(true);
+
+        getViewModel().setSort(sort);
 
         getViewModel().getMovies().observe(this, adapter::submitList);
     }
