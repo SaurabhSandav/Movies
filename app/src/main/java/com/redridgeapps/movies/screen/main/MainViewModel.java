@@ -1,77 +1,66 @@
 package com.redridgeapps.movies.screen.main;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
+import android.arch.paging.LivePagedListBuilder;
+import android.arch.paging.PagedList;
 import android.support.annotation.NonNull;
 
 import com.redridgeapps.movies.api.TMDbService;
+import com.redridgeapps.movies.data.MovieCollectionDataSourceFactory;
 import com.redridgeapps.movies.model.tmdb.Movie;
 import com.redridgeapps.movies.model.tmdb.MovieCollection;
 import com.redridgeapps.movies.screen.base.BaseViewModel;
 import com.redridgeapps.movies.util.Constants;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.redridgeapps.movies.util.function.Function;
 
 import javax.inject.Inject;
 
 import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 public class MainViewModel extends BaseViewModel {
 
-    public MutableLiveData<List<Movie>> movies;
+    private static final int PAGE_SIZE = 20;
+
+    public LiveData<PagedList<Movie>> movies;
+
     private TMDbService tmDbService;
     private String sort;
-    private int page = 0;
 
     @Inject
     MainViewModel(TMDbService tmDbService) {
         this.tmDbService = tmDbService;
-        this.movies = new MutableLiveData<>();
     }
 
     public void setSort(@NonNull String sort) {
         if (sort.equals(this.sort)) return;
         this.sort = sort;
-        movies.setValue(new ArrayList<>());
-        page = 0;
+        setupMovies(page -> getMovieRequest(sort, page));
     }
 
-    public LiveData<List<Movie>> getMovies() {
+    public LiveData<PagedList<Movie>> getMovies() {
         return movies;
     }
 
-    public void refreshMovies() {
-        Single<MovieCollection> collection;
+    private void setupMovies(Function<Integer, Single<MovieCollection>> request) {
+        MovieCollectionDataSourceFactory dataSourceFactory =
+                new MovieCollectionDataSourceFactory(getCompositeDisposable(), request);
 
+        PagedList.Config config = new PagedList.Config.Builder()
+                .setPageSize(PAGE_SIZE)
+                .setInitialLoadSizeHint(PAGE_SIZE * 2)
+                .build();
+
+        movies = new LivePagedListBuilder<>(dataSourceFactory, config).build();
+    }
+
+    private Single<MovieCollection> getMovieRequest(String sort, int page) {
         switch (sort) {
             case Constants.SORT_TOP_RATED:
-                collection = tmDbService.getTopRated(TMDbService.TMDB_API_KEY, ++page);
-                break;
+                return tmDbService.getTopRated(TMDbService.TMDB_API_KEY, page);
             case Constants.SORT_POPULAR:
-                collection = tmDbService.getPopular(TMDbService.TMDB_API_KEY, ++page);
-                break;
+                return tmDbService.getPopular(TMDbService.TMDB_API_KEY, page);
             default:
-                throw new IllegalArgumentException("Invalid Sort Argument!");
+                throw new IllegalArgumentException("Invalid sort argument!");
         }
-
-        Disposable disposable = collection.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        movieCollection -> {
-                            List<Movie> newMovies = movieCollection.getMovies();
-                            if (movies.getValue() != null) newMovies.addAll(movies.getValue());
-                            movies.postValue(newMovies);
-                        },
-                        throwable -> {
-                            // TODO Handle exception without crashing
-                            throw new RuntimeException(throwable);
-                        }
-                );
-
-        getCompositeDisposable().add(disposable);
     }
 }
