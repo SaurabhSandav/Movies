@@ -1,13 +1,16 @@
 package com.redridgeapps.movies.model.tmdb;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v7.util.DiffUtil;
 
 import com.redridgeapps.movies.api.TMDbService;
 import com.squareup.moshi.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class Movie {
+public class Movie implements Parcelable {
 
     @Json(name = "poster_path")
     private String posterPath;
@@ -50,6 +53,62 @@ public class Movie {
 
     @Json(name = "vote_average")
     private double voteAverage;
+
+    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
+        @Override
+        public Movie createFromParcel(Parcel source) {
+            return new Movie(source);
+        }
+
+        @Override
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
+
+    public Movie() {
+    }
+
+    protected Movie(Parcel in) {
+        this.posterPath = in.readString();
+        this.adult = in.readByte() != 0;
+        this.overview = in.readString();
+        this.releaseDate = in.readString();
+        this.genreIds = new ArrayList<>();
+        in.readList(this.genreIds, Integer.class.getClassLoader());
+        this.id = in.readString();
+        this.originalTitle = in.readString();
+        this.originalLanguage = in.readString();
+        this.title = in.readString();
+        this.backdropPath = in.readString();
+        this.popularity = in.readDouble();
+        this.voteCount = in.readInt();
+        this.video = in.readByte() != 0;
+        this.voteAverage = in.readDouble();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.posterPath);
+        dest.writeByte(this.adult ? (byte) 1 : (byte) 0);
+        dest.writeString(this.overview);
+        dest.writeString(this.releaseDate);
+        dest.writeList(this.genreIds);
+        dest.writeString(this.id);
+        dest.writeString(this.originalTitle);
+        dest.writeString(this.originalLanguage);
+        dest.writeString(this.title);
+        dest.writeString(this.backdropPath);
+        dest.writeDouble(this.popularity);
+        dest.writeInt(this.voteCount);
+        dest.writeByte(this.video ? (byte) 1 : (byte) 0);
+        dest.writeDouble(this.voteAverage);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
     public String getPosterPath() {
         return posterPath;
