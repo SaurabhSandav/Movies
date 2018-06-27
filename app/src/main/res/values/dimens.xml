@@ -4,4 +4,7 @@
     <dimen name="default_movie_poster_width">170dp</dimen>
     <dimen name="default_movie_poster_height">255dp</dimen>
 
+    <dimen name="common_margin">8dp</dimen>
+    <dimen name="large_margin">16dp</dimen>
+
 </resources>
