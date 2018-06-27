@@ -13,9 +13,15 @@ public interface TMDbService {
     String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/";
     String TMDB_API_KEY = BuildConfig.TMDB_API_KEY;
     String DEFAULT_IMAGE_POSTER_SIZE = "w342";
+    String DEFAULT_IMAGE_BACKDROP_SIZE = "w780";
 
     static String buildPosterURL(String path) {
         return IMAGE_BASE_URL + DEFAULT_IMAGE_POSTER_SIZE + path;
+    }
+
+    static String buildBackdropURL(String path) {
+        if (path == null) return null;
+        else return IMAGE_BASE_URL + DEFAULT_IMAGE_BACKDROP_SIZE + path;
     }
 
     @GET("movie/top_rated")

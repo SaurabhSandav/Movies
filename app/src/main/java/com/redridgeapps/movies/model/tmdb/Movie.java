@@ -226,6 +226,10 @@ public class Movie implements Parcelable {
         return TMDbService.buildPosterURL(this.posterPath);
     }
 
+    public String getBackdropURL() {
+        return TMDbService.buildBackdropURL(this.backdropPath);
+    }
+
     public static final DiffUtil.ItemCallback<Movie> DIFF_CALLBACK = new DiffUtil.ItemCallback<Movie>() {
 
         @Override
