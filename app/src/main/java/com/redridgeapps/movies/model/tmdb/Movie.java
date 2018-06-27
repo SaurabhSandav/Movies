@@ -3,12 +3,17 @@ package com.redridgeapps.movies.model.tmdb;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v7.util.DiffUtil;
+import android.text.format.DateFormat;
 
 import com.redridgeapps.movies.api.TMDbService;
 import com.squareup.moshi.Json;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class Movie implements Parcelable {
 
@@ -228,6 +233,17 @@ public class Movie implements Parcelable {
 
     public String getBackdropURL() {
         return TMDbService.buildBackdropURL(this.backdropPath);
+    }
+
+    public String getSimpleReleaseDate() {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+
+        try {
+            Date date = format.parse(releaseDate);
+            return DateFormat.format("MMM d, yyyy", date).toString();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static final DiffUtil.ItemCallback<Movie> DIFF_CALLBACK = new DiffUtil.ItemCallback<Movie>() {
