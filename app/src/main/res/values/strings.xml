@@ -6,4 +6,5 @@
     <string name="activity_main_sort_top_rated">Top Rated</string>
 
     <string name="con_desc_movie_poster">Movie Poster</string>
+    <string name="con_desc_movie_backdrop">Movie Backdrop</string>
 </resources>

@@ -23,7 +23,8 @@
         </activity>
         <activity
             android:name=".screen.detail.DetailActivity"
-            android:parentActivityName=".screen.main.MainActivity">
+            android:parentActivityName=".screen.main.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".screen.main.MainActivity" />
