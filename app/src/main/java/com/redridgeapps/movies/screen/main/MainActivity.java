@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,8 +17,12 @@ import com.redridgeapps.movies.model.tmdb.Movie;
 import com.redridgeapps.movies.screen.base.BaseActivity;
 import com.redridgeapps.movies.screen.detail.DetailActivity;
 import com.redridgeapps.movies.util.Constants;
+import com.redridgeapps.movies.util.RetryableError;
 
 import javax.inject.Inject;
+
+import io.reactivex.Completable;
+import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBinding> {
 
@@ -132,6 +137,17 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
             showList();
             adapter.submitList(movies);
         });
+        getViewModel().getMovieListErrors().observe(this, event -> {
+            if (event == null || event.hasBeenHandled()) return;
+
+            RetryableError error = event.getPayloadIfNotHandled();
+            String errorString = error.getThrowable().getMessage();
+            errorString = (errorString != null) ? errorString : getString(R.string.error_network_request_failure);
+
+            Snackbar.make(getBinding().getRoot(), errorString, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.text_retry, view -> retryFetch(error))
+                    .show();
+        });
     }
 
     private void handleListClick(Movie movie) {
@@ -154,5 +170,11 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         getBinding().recyclerView.setVisibility(View.VISIBLE);
         getBinding().loading.setVisibility(View.GONE);
         getBinding().notConnected.setVisibility(View.GONE);
+    }
+
+    private void retryFetch(RetryableError error) {
+        Completable.create(emitter -> error.retry())
+                .subscribeOn(Schedulers.io())
+                .subscribe();
     }
 }

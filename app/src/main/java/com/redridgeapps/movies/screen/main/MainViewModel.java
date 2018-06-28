@@ -1,16 +1,20 @@
 package com.redridgeapps.movies.screen.main;
 
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Transformations;
 import android.arch.paging.LivePagedListBuilder;
 import android.arch.paging.PagedList;
 import android.support.annotation.NonNull;
 
 import com.redridgeapps.movies.api.TMDbService;
+import com.redridgeapps.movies.data.MovieCollectionDataSource;
 import com.redridgeapps.movies.data.MovieCollectionDataSourceFactory;
 import com.redridgeapps.movies.model.tmdb.Movie;
 import com.redridgeapps.movies.model.tmdb.MovieCollection;
 import com.redridgeapps.movies.screen.base.BaseViewModel;
 import com.redridgeapps.movies.util.Constants;
+import com.redridgeapps.movies.util.Event;
+import com.redridgeapps.movies.util.RetryableError;
 import com.redridgeapps.movies.util.function.Function;
 
 import javax.inject.Inject;
@@ -22,6 +26,7 @@ public class MainViewModel extends BaseViewModel {
     private static final int PAGE_SIZE = 20;
 
     public LiveData<PagedList<Movie>> movies;
+    private LiveData<Event<RetryableError>> movieListErrors;
 
     private TMDbService tmDbService;
     private String sort;
@@ -41,6 +46,10 @@ public class MainViewModel extends BaseViewModel {
         return movies;
     }
 
+    public LiveData<Event<RetryableError>> getMovieListErrors() {
+        return movieListErrors;
+    }
+
     private void setupMovies(Function<Integer, Single<MovieCollection>> request) {
         MovieCollectionDataSourceFactory dataSourceFactory =
                 new MovieCollectionDataSourceFactory(getCompositeDisposable(), request);
@@ -51,6 +60,8 @@ public class MainViewModel extends BaseViewModel {
                 .build();
 
         movies = new LivePagedListBuilder<>(dataSourceFactory, config).build();
+
+        movieListErrors = Transformations.switchMap(dataSourceFactory.getDataSourceLiveData(), MovieCollectionDataSource::getErrors);
     }
 
     private Single<MovieCollection> getMovieRequest(String sort, int page) {
