@@ -1,10 +1,14 @@
 package com.redridgeapps.movies.data;
 
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.paging.PageKeyedDataSource;
 import android.support.annotation.NonNull;
 
 import com.redridgeapps.movies.model.tmdb.Movie;
 import com.redridgeapps.movies.model.tmdb.MovieCollection;
+import com.redridgeapps.movies.util.Event;
+import com.redridgeapps.movies.util.RetryableError;
+import com.redridgeapps.movies.util.function.Action;
 import com.redridgeapps.movies.util.function.Function;
 
 import io.reactivex.Single;
@@ -16,10 +20,12 @@ public class MovieCollectionDataSource extends PageKeyedDataSource<Integer, Movi
 
     private CompositeDisposable compositeDisposable;
     private Function<Integer, Single<MovieCollection>> request;
+    private MutableLiveData<Event<RetryableError>> errorMutableLiveData;
 
     MovieCollectionDataSource(CompositeDisposable compositeDisposable, Function<Integer, Single<MovieCollection>> request) {
         this.compositeDisposable = compositeDisposable;
         this.request = request;
+        this.errorMutableLiveData = new MutableLiveData<>();
     }
 
     @Override
@@ -33,7 +39,10 @@ public class MovieCollectionDataSource extends PageKeyedDataSource<Integer, Movi
                         null,
                         getAdjacentPageKey(movieCollection)
                 ),
-                throwable -> {/*TODO handle failure*/}
+                throwable -> {
+                    Action retry = () -> loadInitial(params, callback);
+                    errorMutableLiveData.postValue(new Event<>(new RetryableError(throwable, retry)));
+                }
         );
     }
 
@@ -49,7 +58,10 @@ public class MovieCollectionDataSource extends PageKeyedDataSource<Integer, Movi
                         movieCollection.getMovies(),
                         getAdjacentPageKey(movieCollection)
                 ),
-                throwable -> {/*TODO handle failure*/}
+                throwable -> {
+                    Action retry = () -> loadAfter(params, callback);
+                    errorMutableLiveData.postValue(new Event<>(new RetryableError(throwable, retry)));
+                }
         );
     }
 
@@ -65,5 +77,9 @@ public class MovieCollectionDataSource extends PageKeyedDataSource<Integer, Movi
     private Integer getAdjacentPageKey(MovieCollection collection) {
         if (collection.getPage() >= collection.getTotalPages()) return null;
         else return collection.getPage() + 1;
+    }
+
+    public MutableLiveData<Event<RetryableError>> getErrors() {
+        return errorMutableLiveData;
     }
 }

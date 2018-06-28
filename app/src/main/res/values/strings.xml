@@ -12,4 +12,7 @@
     <string name="text_loading_movies">Loading movies…</string>
     <string name="text_not_connected_internet">Not connected to the Internet!</string>
     <string name="text_recheck">Recheck</string>
+    <string name="text_retry">Retry</string>
+
+    <string name="error_network_request_failure">Network request failed!</string>
 </resources>
