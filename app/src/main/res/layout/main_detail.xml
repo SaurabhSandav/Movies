@@ -50,6 +50,8 @@
                 android:contentDescription="@string/con_desc_movie_poster"
                 android:scaleType="fitXY"
                 app:imageUrl="@{movie.getPosterURL()}"
+                app:error="@{@drawable/poster_error}"
+                app:placeholder="@{@drawable/poster_placeholder}"
                 app:layout_constraintStart_toStartOf="@+id/start_guideline"
                 app:layout_constraintTop_toTopOf="@+id/top_guideline"
                 tools:src="@tools:sample/avatars" />
