@@ -34,6 +34,35 @@
                 android:text="@string/text_loading_movies" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/not_connected"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/con_desc_not_connected_internet"
+                android:src="@drawable/disconnected_wifi" />
+
+            <TextView
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/common_margin"
+                android:text="@string/text_not_connected_internet" />
+
+            <Button
+                android:id="@+id/recheck"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/common_margin"
+                android:text="@string/text_recheck" />
+        </LinearLayout>
+
     </FrameLayout>
 
 </layout>

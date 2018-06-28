@@ -1,6 +1,9 @@
 package com.redridgeapps.movies.screen.main;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.Menu;
@@ -31,8 +34,8 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
 
         sort = prefs.getString(Constants.KEY_SORT_MAIN, Constants.DEFAULT_SORT_MAIN);
 
-        showLoading();
         setupRecyclerView();
+        fetchMoviesIfConnected();
     }
 
     @Override
@@ -84,19 +87,10 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
 
     private void changeSort(MenuItem item, String sort) {
         item.setChecked(true);
-
+        this.sort = sort;
         prefs.edit().putString(Constants.KEY_SORT_MAIN, sort).apply();
 
-        showLoading();
-
-        adapter = new MovieListAdapter(itemWidth, this::handleListClick);
-        getBinding().recyclerView.setAdapter(adapter);
-
-        getViewModel().setSort(sort);
-        getViewModel().getMovies().observe(this, movies -> {
-            showList();
-            adapter.submitList(movies);
-        });
+        fetchMoviesIfConnected();
     }
 
     private void setupRecyclerView() {
@@ -107,14 +101,33 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         int columns = (int) Math.ceil(fullWidth / presetItemWidth);
         itemWidth = fullWidth / columns;
 
-        adapter = new MovieListAdapter(itemWidth, this::handleListClick);
-
         getBinding().recyclerView.setLayoutManager(new GridLayoutManager(this, columns));
-        getBinding().recyclerView.setAdapter(adapter);
         getBinding().recyclerView.setHasFixedSize(true);
+    }
+
+    private boolean isConnectedToNetwork() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm != null ? cm.getActiveNetworkInfo() : null;
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    }
+
+    private void fetchMoviesIfConnected() {
+        if (isConnectedToNetwork()) {
+            fetchMovies();
+        } else {
+            showNotConnected();
+            getBinding().recheck.setOnClickListener(view -> fetchMoviesIfConnected());
+        }
+    }
+
+    private void fetchMovies() {
+        showLoading();
+
+        adapter = new MovieListAdapter(itemWidth, this::handleListClick);
+        getBinding().recyclerView.setAdapter(adapter);
 
         getViewModel().setSort(sort);
-
         getViewModel().getMovies().observe(this, movies -> {
             showList();
             adapter.submitList(movies);
@@ -128,10 +141,18 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
     private void showLoading() {
         getBinding().recyclerView.setVisibility(View.INVISIBLE);
         getBinding().loading.setVisibility(View.VISIBLE);
+        getBinding().notConnected.setVisibility(View.GONE);
+    }
+
+    private void showNotConnected() {
+        getBinding().recyclerView.setVisibility(View.INVISIBLE);
+        getBinding().loading.setVisibility(View.GONE);
+        getBinding().notConnected.setVisibility(View.VISIBLE);
     }
 
     private void showList() {
         getBinding().recyclerView.setVisibility(View.VISIBLE);
         getBinding().loading.setVisibility(View.GONE);
+        getBinding().notConnected.setVisibility(View.GONE);
     }
 }
