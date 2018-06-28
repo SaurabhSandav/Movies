@@ -7,4 +7,6 @@
 
     <string name="con_desc_movie_poster">Movie Poster</string>
     <string name="con_desc_movie_backdrop">Movie Backdrop</string>
+
+    <string name="text_loading_movies">Loading movies…</string>
 </resources>
