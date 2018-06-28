@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.redridgeapps.movies.R;
 import com.redridgeapps.movies.databinding.ActivityMainBinding;
@@ -30,6 +31,7 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
 
         sort = prefs.getString(Constants.KEY_SORT_MAIN, Constants.DEFAULT_SORT_MAIN);
 
+        showLoading();
         setupRecyclerView();
     }
 
@@ -85,11 +87,16 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
 
         prefs.edit().putString(Constants.KEY_SORT_MAIN, sort).apply();
 
+        showLoading();
+
         adapter = new MovieListAdapter(itemWidth, this::handleListClick);
         getBinding().recyclerView.setAdapter(adapter);
 
         getViewModel().setSort(sort);
-        getViewModel().getMovies().observe(this, adapter::submitList);
+        getViewModel().getMovies().observe(this, movies -> {
+            showList();
+            adapter.submitList(movies);
+        });
     }
 
     private void setupRecyclerView() {
@@ -108,10 +115,23 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
 
         getViewModel().setSort(sort);
 
-        getViewModel().getMovies().observe(this, adapter::submitList);
+        getViewModel().getMovies().observe(this, movies -> {
+            showList();
+            adapter.submitList(movies);
+        });
     }
 
     private void handleListClick(Movie movie) {
         startActivity(DetailActivity.createIntent(MainActivity.this, movie));
+    }
+
+    private void showLoading() {
+        getBinding().recyclerView.setVisibility(View.INVISIBLE);
+        getBinding().loading.setVisibility(View.VISIBLE);
+    }
+
+    private void showList() {
+        getBinding().recyclerView.setVisibility(View.VISIBLE);
+        getBinding().loading.setVisibility(View.GONE);
     }
 }
