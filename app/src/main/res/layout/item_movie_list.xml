@@ -23,7 +23,9 @@
             android:layout_height="match_parent"
             android:contentDescription="@string/con_desc_movie_poster"
             android:scaleType="fitXY"
-            app:imageUrl='@{(movie == null) ? "" : movie.getPosterURL()}' />
+            app:error="@{@drawable/poster_error}"
+            app:imageUrl='@{(movie == null) ? "" : movie.getPosterURL()}'
+            app:placeholder="@{@drawable/poster_placeholder}" />
 
     </FrameLayout>
 
