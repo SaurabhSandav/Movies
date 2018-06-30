@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.redridgeapps.movies.util.GlideApp;
 
 public final class DataBinder {
@@ -25,6 +26,7 @@ public final class DataBinder {
                     .fitCenter()
                     .placeholder(placeholder)
                     .error(error)
+                    .transition(DrawableTransitionOptions.withCrossFade())
                     .into(imageView);
         } else {
             Glide.with(imageView.getContext()).clear(imageView);
