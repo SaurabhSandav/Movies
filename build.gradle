@@ -33,7 +33,7 @@ ext {
     support_version = '27.1.1'
     constraint_layout_version = '1.1.2'
     lifecycle_version = '1.1.1'
-    paging_version = '1.0.0'
+    paging_version = '1.0.1'
     dagger_version = '2.16'
     moshi_version = '1.6.0'
     retrofit_version = '2.4.0'

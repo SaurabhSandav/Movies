@@ -1,39 +1,45 @@
 package com.redridgeapps.movies.screen.main;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Transformations;
-import android.arch.paging.LivePagedListBuilder;
+import android.arch.lifecycle.LiveDataReactiveStreams;
 import android.arch.paging.PagedList;
 import android.support.annotation.NonNull;
 
 import com.redridgeapps.movies.api.TMDbService;
-import com.redridgeapps.movies.data.MovieCollectionDataSource;
-import com.redridgeapps.movies.data.MovieCollectionDataSourceFactory;
+import com.redridgeapps.movies.data.MoviesDataSource;
 import com.redridgeapps.movies.model.tmdb.Movie;
 import com.redridgeapps.movies.model.tmdb.MovieCollection;
 import com.redridgeapps.movies.screen.base.BaseViewModel;
 import com.redridgeapps.movies.util.Constants;
 import com.redridgeapps.movies.util.Event;
+import com.redridgeapps.movies.util.MainThreadExecutor;
 import com.redridgeapps.movies.util.RetryableError;
 import com.redridgeapps.movies.util.function.Function;
 
 import javax.inject.Inject;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Single;
 
 public class MainViewModel extends BaseViewModel {
 
     private static final int PAGE_SIZE = 20;
 
-    public LiveData<PagedList<Movie>> movies;
+    private PagedList<Movie> moviesPagedList;
     private LiveData<Event<RetryableError>> movieListErrors;
-
+    private LiveData<Object> initialLoadUpdates;
     private TMDbService tmDbService;
+    private final PagedList.Config config;
     private String sort;
 
     @Inject
     MainViewModel(TMDbService tmDbService) {
         this.tmDbService = tmDbService;
+
+        this.config = new PagedList.Config.Builder()
+                .setPageSize(PAGE_SIZE)
+                .setInitialLoadSizeHint(PAGE_SIZE * 2)
+                .build();
     }
 
     public void setSort(@NonNull String sort) {
@@ -42,26 +48,29 @@ public class MainViewModel extends BaseViewModel {
         setupMovies(page -> getMovieRequest(sort, page));
     }
 
-    public LiveData<PagedList<Movie>> getMovies() {
-        return movies;
+    public PagedList<Movie> getMoviesPagedList() {
+        return moviesPagedList;
     }
 
     public LiveData<Event<RetryableError>> getMovieListErrors() {
         return movieListErrors;
     }
 
-    private void setupMovies(Function<Integer, Single<MovieCollection>> request) {
-        MovieCollectionDataSourceFactory dataSourceFactory =
-                new MovieCollectionDataSourceFactory(getCompositeDisposable(), request);
+    public LiveData<Object> getInitialLoadUpdates() {
+        return initialLoadUpdates;
+    }
 
-        PagedList.Config config = new PagedList.Config.Builder()
-                .setPageSize(PAGE_SIZE)
-                .setInitialLoadSizeHint(PAGE_SIZE * 2)
+    private void setupMovies(Function<Integer, Single<MovieCollection>> request) {
+
+        MoviesDataSource dataSource = new MoviesDataSource(getCompositeDisposable(), request);
+
+        moviesPagedList = new PagedList.Builder<>(dataSource, config)
+                .setFetchExecutor(MainThreadExecutor.getExecutor())
+                .setNotifyExecutor(MainThreadExecutor.getExecutor())
                 .build();
 
-        movies = new LivePagedListBuilder<>(dataSourceFactory, config).build();
-
-        movieListErrors = Transformations.switchMap(dataSourceFactory.getDataSourceLiveData(), MovieCollectionDataSource::getErrors);
+        movieListErrors = dataSource.getErrors();
+        initialLoadUpdates = LiveDataReactiveStreams.fromPublisher(dataSource.getInitialLoadUpdates().toFlowable(BackpressureStrategy.BUFFER));
     }
 
     private Single<MovieCollection> getMovieRequest(String sort, int page) {

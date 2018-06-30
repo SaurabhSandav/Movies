@@ -1,5 +1,6 @@
 package com.redridgeapps.movies.data;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.paging.PageKeyedDataSource;
 import android.support.annotation.NonNull;
@@ -12,33 +13,42 @@ import com.redridgeapps.movies.util.function.Action;
 import com.redridgeapps.movies.util.function.Function;
 
 import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 
-public class MovieCollectionDataSource extends PageKeyedDataSource<Integer, Movie> {
+public class MoviesDataSource extends PageKeyedDataSource<Integer, Movie> {
+
+    private PublishSubject<Object> initialLoadUpdates;
 
     private CompositeDisposable compositeDisposable;
     private Function<Integer, Single<MovieCollection>> request;
     private MutableLiveData<Event<RetryableError>> errorMutableLiveData;
 
-    MovieCollectionDataSource(CompositeDisposable compositeDisposable, Function<Integer, Single<MovieCollection>> request) {
+    public MoviesDataSource(CompositeDisposable compositeDisposable, Function<Integer, Single<MovieCollection>> request) {
         this.compositeDisposable = compositeDisposable;
         this.request = request;
         this.errorMutableLiveData = new MutableLiveData<>();
+        initialLoadUpdates = PublishSubject.create();
     }
 
     @Override
     public void loadInitial(@NonNull LoadInitialParams<Integer> params, @NonNull LoadInitialCallback<Integer, Movie> callback) {
-        getMovies(
+        fetchMovies(
                 1,
-                movieCollection -> callback.onResult(
-                        movieCollection.getMovies(),
-                        0,
-                        movieCollection.getTotalResults(),
-                        null,
-                        getAdjacentPageKey(movieCollection)
-                ),
+                movieCollection -> {
+                    initialLoadUpdates.onNext(Irrelevant.INSTANCE);
+                    callback.onResult(
+                            movieCollection.getMovies(),
+                            0,
+                            movieCollection.getTotalResults(),
+                            null,
+                            getAdjacentPageKey(movieCollection)
+                    );
+                },
                 throwable -> {
                     Action retry = () -> loadInitial(params, callback);
                     errorMutableLiveData.postValue(new Event<>(new RetryableError(throwable, retry)));
@@ -47,12 +57,8 @@ public class MovieCollectionDataSource extends PageKeyedDataSource<Integer, Movi
     }
 
     @Override
-    public void loadBefore(@NonNull LoadParams<Integer> params, @NonNull LoadCallback<Integer, Movie> callback) {
-    }
-
-    @Override
     public void loadAfter(@NonNull LoadParams<Integer> params, @NonNull LoadCallback<Integer, Movie> callback) {
-        getMovies(
+        fetchMovies(
                 params.key,
                 movieCollection -> callback.onResult(
                         movieCollection.getMovies(),
@@ -65,21 +71,34 @@ public class MovieCollectionDataSource extends PageKeyedDataSource<Integer, Movi
         );
     }
 
-    private void getMovies(int page, Consumer<MovieCollection> onSuccess, Consumer<Throwable> onError) {
+    @Override
+    public void loadBefore(@NonNull LoadParams<Integer> params, @NonNull LoadCallback<Integer, Movie> callback) {
+    }
+
+    public LiveData<Event<RetryableError>> getErrors() {
+        return errorMutableLiveData;
+    }
+
+    public PublishSubject<Object> getInitialLoadUpdates() {
+        return initialLoadUpdates;
+    }
+
+    private void fetchMovies(int page, Consumer<MovieCollection> onSuccess, Consumer<Throwable> onError) {
 
         Single<MovieCollection> collection = request.apply(page);
 
-        Disposable disposable = collection.subscribe(onSuccess, onError);
+        Disposable disposable = collection
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(onSuccess, onError);
 
         compositeDisposable.add(disposable);
     }
 
+    enum Irrelevant {INSTANCE}
+
     private Integer getAdjacentPageKey(MovieCollection collection) {
         if (collection.getPage() >= collection.getTotalPages()) return null;
         else return collection.getPage() + 1;
-    }
-
-    public MutableLiveData<Event<RetryableError>> getErrors() {
-        return errorMutableLiveData;
     }
 }

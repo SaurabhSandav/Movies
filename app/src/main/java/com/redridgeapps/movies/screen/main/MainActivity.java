@@ -21,15 +21,11 @@ import com.redridgeapps.movies.util.RetryableError;
 
 import javax.inject.Inject;
 
-import io.reactivex.Completable;
-import io.reactivex.schedulers.Schedulers;
-
 public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBinding> {
 
     @Inject
     public SharedPreferences prefs;
 
-    private MovieListAdapter adapter;
     private String sort;
     private int itemWidth;
 
@@ -129,14 +125,14 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
     private void fetchMovies() {
         showLoading();
 
-        adapter = new MovieListAdapter(itemWidth, this::handleListClick);
+        MovieListAdapter adapter = new MovieListAdapter(itemWidth, this::handleListClick);
         getBinding().recyclerView.setAdapter(adapter);
 
         getViewModel().setSort(sort);
-        getViewModel().getMovies().observe(this, movies -> {
-            showList();
-            adapter.submitList(movies);
-        });
+        getViewModel().getInitialLoadUpdates().observe(this, o -> showList());
+
+        adapter.submitList(getViewModel().getMoviesPagedList());
+
         getViewModel().getMovieListErrors().observe(this, event -> {
             if (event == null || event.hasBeenHandled()) return;
 
@@ -145,7 +141,7 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
             errorString = (errorString != null) ? errorString : getString(R.string.error_network_request_failure);
 
             Snackbar.make(getBinding().getRoot(), errorString, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(R.string.text_retry, view -> retryFetch(error))
+                    .setAction(R.string.text_retry, view -> error.retry())
                     .show();
         });
     }
@@ -170,11 +166,5 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         getBinding().recyclerView.setVisibility(View.VISIBLE);
         getBinding().loading.setVisibility(View.GONE);
         getBinding().notConnected.setVisibility(View.GONE);
-    }
-
-    private void retryFetch(RetryableError error) {
-        Completable.create(emitter -> error.retry())
-                .subscribeOn(Schedulers.io())
-                .subscribe();
     }
 }
