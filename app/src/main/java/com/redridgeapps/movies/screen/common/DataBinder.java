@@ -2,6 +2,7 @@ package com.redridgeapps.movies.screen.common;
 
 import android.databinding.BindingAdapter;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
@@ -20,7 +21,7 @@ public final class DataBinder {
             Drawable error
     ) {
 
-        if (url != null) {
+        if (!TextUtils.isEmpty(url)) {
             GlideApp.with(imageView.getContext())
                     .load(url)
                     .fitCenter()
