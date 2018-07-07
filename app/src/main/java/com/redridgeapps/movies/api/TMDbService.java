@@ -2,9 +2,11 @@ package com.redridgeapps.movies.api;
 
 import com.redridgeapps.movies.BuildConfig;
 import com.redridgeapps.movies.model.tmdb.MovieCollection;
+import com.redridgeapps.movies.model.tmdb.MovieDetail;
 
 import io.reactivex.Single;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface TMDbService {
@@ -14,6 +16,7 @@ public interface TMDbService {
     String TMDB_API_KEY = BuildConfig.TMDB_API_KEY;
     String DEFAULT_IMAGE_POSTER_SIZE = "w342";
     String DEFAULT_IMAGE_BACKDROP_SIZE = "w780";
+    String INCLUDE_REVIEWS_AND_VIDEOS = "reviews,videos";
 
     static String buildPosterURL(String path) {
         return IMAGE_BASE_URL + DEFAULT_IMAGE_POSTER_SIZE + path;
@@ -34,5 +37,12 @@ public interface TMDbService {
     Single<MovieCollection> getPopular(
             @Query("api_key") String apiKey,
             @Query("page") int page
+    );
+
+    @GET("movie/{movieId}")
+    Single<MovieDetail> getMovieDetail(
+            @Path("movieId") String movieId,
+            @Query("api_key") String apiKey,
+            @Query("append_to_response") String appendToResponse
     );
 }
