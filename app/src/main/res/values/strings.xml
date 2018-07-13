@@ -13,6 +13,8 @@
     <string name="text_not_connected_internet">Not connected to the Internet!</string>
     <string name="text_recheck">Recheck</string>
     <string name="text_retry">Retry</string>
+    <string name="text_add_to_favourites">Add to Favourites</string>
+    <string name="text_remove_from_favourites">Remove from Favourites</string>
 
     <string name="error_network_request_failure">Network request failed!</string>
 </resources>

@@ -1,12 +1,14 @@
 package com.redridgeapps.movies.di.modules;
 
 import android.app.Application;
+import android.arch.persistence.room.Room;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
 
 import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.redridgeapps.movies.api.TMDbService;
+import com.redridgeapps.movies.database.AppDatabase;
 
 import javax.inject.Singleton;
 
@@ -78,5 +80,11 @@ public abstract class AppModule {
     @Singleton
     public static TMDbService provideTMDbService(Retrofit retrofit) {
         return retrofit.create(TMDbService.class);
+    }
+
+    @Provides
+    @Singleton
+    public static AppDatabase provideAppDatabase(Application app) {
+        return Room.databaseBuilder(app, AppDatabase.class, AppDatabase.NAME).build();
     }
 }

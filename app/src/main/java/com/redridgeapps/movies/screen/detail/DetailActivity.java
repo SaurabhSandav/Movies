@@ -3,6 +3,8 @@ package com.redridgeapps.movies.screen.detail;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
+import android.view.View;
 import android.view.ViewGroup;
 
 import com.redridgeapps.movies.R;
@@ -27,6 +29,10 @@ public class DetailActivity extends BaseActivity<DetailViewModel, ActivityDetail
         super.onCreate(savedInstanceState);
 
         Movie movie = getIntent().getParcelableExtra(EXTRA_MOVIE);
+
+        observeErrors();
+
+        getViewModel().setMovieId(movie);
         setupLayout(movie);
     }
 
@@ -38,6 +44,15 @@ public class DetailActivity extends BaseActivity<DetailViewModel, ActivityDetail
     @Override
     protected Class<DetailViewModel> provideViewModelClass() {
         return DetailViewModel.class;
+    }
+
+    private void observeErrors() {
+        getViewModel().getErrorsLiveData().observe(this, event -> {
+            if (event == null || event.hasBeenHandled()) return;
+
+            Snackbar.make(getBinding().getRoot(), event.getPayload().getMessage(), Snackbar.LENGTH_LONG)
+                    .show();
+        });
     }
 
     private void setupLayout(Movie movie) {
@@ -68,6 +83,32 @@ public class DetailActivity extends BaseActivity<DetailViewModel, ActivityDetail
             getBinding().mainDetail.moviePoster.getLayoutParams().height = (int) (itemWidth * 1.5);
         }
 
+        setupFavouriteButton();
         getBinding().setMovie(movie);
+    }
+
+    private void setupFavouriteButton() {
+
+        getViewModel().getFavouriteState().observe(this, favourite -> {
+            if (favourite == null) return;
+            setFavouriteButtonState(favourite);
+            getBinding().mainDetail.btFavourite.setVisibility(View.VISIBLE);
+        });
+
+        getBinding().mainDetail.btFavourite.setOnClickListener(view -> {
+            boolean newState = !((boolean) view.getTag());
+
+            if (newState) getViewModel().addToFavourites();
+            else getViewModel().removeFromFavourites();
+
+            setFavouriteButtonState(newState);
+        });
+    }
+
+    private void setFavouriteButtonState(boolean favourite) {
+        int stringRes = favourite ? R.string.text_remove_from_favourites : R.string.text_add_to_favourites;
+
+        getBinding().mainDetail.btFavourite.setText(stringRes);
+        getBinding().mainDetail.btFavourite.setTag(favourite);
     }
 }

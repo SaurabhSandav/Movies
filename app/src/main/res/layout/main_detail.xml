@@ -95,6 +95,19 @@
                 app:layout_constraintTop_toBottomOf="@+id/movie_release"
                 tools:rating="7.5" />
 
+            <Button
+                android:id="@+id/bt_favourite"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/common_margin"
+                android:layout_marginTop="@dimen/common_margin"
+                android:text="@string/text_add_to_favourites"
+                android:visibility="gone"
+                app:layout_constraintEnd_toStartOf="@+id/end_guideline"
+                app:layout_constraintStart_toEndOf="@+id/movie_poster"
+                app:layout_constraintTop_toBottomOf="@+id/movie_rating" />
+
             <TextView
                 android:id="@+id/movie_description"
                 style="@style/TextAppearance.AppCompat.Body1"
