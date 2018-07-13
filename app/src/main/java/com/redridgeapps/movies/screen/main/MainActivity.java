@@ -36,6 +36,7 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         sort = prefs.getString(Constants.KEY_SORT_MAIN, Constants.DEFAULT_SORT_MAIN);
 
         setupRecyclerView();
+        observeErrors();
         fetchMoviesIfConnected();
     }
 
@@ -122,27 +123,13 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         }
     }
 
-    private void fetchMovies() {
-        showLoading();
-
-        MovieListAdapter adapter = new MovieListAdapter(itemWidth, this::handleListClick);
-        getBinding().recyclerView.setAdapter(adapter);
-
-        getViewModel().setSort(sort);
-        getViewModel().getInitialLoadUpdates().observe(this, o -> showList());
-
-        adapter.submitList(getViewModel().getMoviesPagedList());
-
-        getViewModel().getMovieListErrors().observe(this, event -> {
+    private void observeErrors() {
+        getViewModel().getErrorsLiveData().observe(this, event -> {
             if (event == null || event.hasBeenHandled()) return;
 
-            RetryableError error = event.getPayloadIfNotHandled();
-            String errorString = error.getThrowable().getMessage();
-            errorString = (errorString != null) ? errorString : getString(R.string.error_network_request_failure);
-
-            Snackbar.make(getBinding().getRoot(), errorString, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(R.string.text_retry, view -> error.retry())
-                    .show();
+            if (event.getPayload() instanceof RetryableError) {
+                showRetryableError((RetryableError) event.getPayload());
+            }
         });
     }
 
@@ -166,5 +153,39 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         getBinding().recyclerView.setVisibility(View.VISIBLE);
         getBinding().loading.setVisibility(View.GONE);
         getBinding().notConnected.setVisibility(View.GONE);
+    }
+
+    private void fetchMovies() {
+        showLoading();
+
+        MovieListAdapter adapter = new MovieListAdapter(itemWidth, this::handleListClick);
+        getBinding().recyclerView.setAdapter(adapter);
+
+        getViewModel().setSort(sort);
+
+        showList();
+
+        adapter.submitList(getViewModel().getMoviesPagedList());
+    }
+
+    private void showRetryableError(RetryableError error) {
+        String errorString = error.getMessage();
+        errorString = (errorString != null) ? errorString : getString(R.string.error_network_request_failure);
+
+        Snackbar.make(getBinding().getRoot(), errorString, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.text_retry, view -> error.retry())
+                .show();
+    }
+
+    private void showFavourites() {
+        showLoading();
+
+        FavouriteListAdapter adapter = new FavouriteListAdapter(itemWidth, this::handleListClick);
+        getBinding().recyclerView.setAdapter(adapter);
+
+        getViewModel().getFavouriteMovies().observe(this, movies -> {
+            showList();
+            adapter.submitList(movies);
+        });
     }
 }

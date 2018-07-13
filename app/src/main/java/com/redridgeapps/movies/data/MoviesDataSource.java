@@ -18,37 +18,30 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.PublishSubject;
 
 public class MoviesDataSource extends PageKeyedDataSource<Integer, Movie> {
 
-    private PublishSubject<Object> initialLoadUpdates;
-
     private CompositeDisposable compositeDisposable;
     private Function<Integer, Single<MovieCollection>> request;
-    private MutableLiveData<Event<RetryableError>> errorMutableLiveData;
+    private MutableLiveData<Event<Throwable>> errorMutableLiveData;
 
     public MoviesDataSource(CompositeDisposable compositeDisposable, Function<Integer, Single<MovieCollection>> request) {
         this.compositeDisposable = compositeDisposable;
         this.request = request;
         this.errorMutableLiveData = new MutableLiveData<>();
-        initialLoadUpdates = PublishSubject.create();
     }
 
     @Override
     public void loadInitial(@NonNull LoadInitialParams<Integer> params, @NonNull LoadInitialCallback<Integer, Movie> callback) {
         fetchMovies(
                 1,
-                movieCollection -> {
-                    initialLoadUpdates.onNext(Irrelevant.INSTANCE);
-                    callback.onResult(
-                            movieCollection.getMovies(),
-                            0,
-                            movieCollection.getTotalResults(),
-                            null,
-                            getAdjacentPageKey(movieCollection)
-                    );
-                },
+                movieCollection -> callback.onResult(
+                        movieCollection.getMovies(),
+                        0,
+                        movieCollection.getTotalResults(),
+                        null,
+                        getAdjacentPageKey(movieCollection)
+                ),
                 throwable -> {
                     Action retry = () -> loadInitial(params, callback);
                     errorMutableLiveData.postValue(new Event<>(new RetryableError(throwable, retry)));
@@ -75,12 +68,8 @@ public class MoviesDataSource extends PageKeyedDataSource<Integer, Movie> {
     public void loadBefore(@NonNull LoadParams<Integer> params, @NonNull LoadCallback<Integer, Movie> callback) {
     }
 
-    public LiveData<Event<RetryableError>> getErrors() {
+    public LiveData<Event<Throwable>> getErrors() {
         return errorMutableLiveData;
-    }
-
-    public PublishSubject<Object> getInitialLoadUpdates() {
-        return initialLoadUpdates;
     }
 
     private void fetchMovies(int page, Consumer<MovieCollection> onSuccess, Consumer<Throwable> onError) {
@@ -94,8 +83,6 @@ public class MoviesDataSource extends PageKeyedDataSource<Integer, Movie> {
 
         compositeDisposable.add(disposable);
     }
-
-    enum Irrelevant {INSTANCE}
 
     private Integer getAdjacentPageKey(MovieCollection collection) {
         if (collection.getPage() >= collection.getTotalPages()) return null;

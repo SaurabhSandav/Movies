@@ -1,7 +1,7 @@
 package com.redridgeapps.movies.screen.main;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.LiveDataReactiveStreams;
+import android.arch.lifecycle.MediatorLiveData;
 import android.arch.paging.PagedList;
 import android.support.annotation.NonNull;
 
@@ -13,12 +13,10 @@ import com.redridgeapps.movies.screen.base.BaseViewModel;
 import com.redridgeapps.movies.util.Constants;
 import com.redridgeapps.movies.util.Event;
 import com.redridgeapps.movies.util.MainThreadExecutor;
-import com.redridgeapps.movies.util.RetryableError;
 import com.redridgeapps.movies.util.function.Function;
 
 import javax.inject.Inject;
 
-import io.reactivex.BackpressureStrategy;
 import io.reactivex.Single;
 
 public class MainViewModel extends BaseViewModel {
@@ -26,8 +24,7 @@ public class MainViewModel extends BaseViewModel {
     private static final int PAGE_SIZE = 20;
 
     private PagedList<Movie> moviesPagedList;
-    private LiveData<Event<RetryableError>> movieListErrors;
-    private LiveData<Object> initialLoadUpdates;
+    private MediatorLiveData<Event<Throwable>> errorsMediatorLiveData;
     private TMDbService tmDbService;
     private final PagedList.Config config;
     private String sort;
@@ -35,6 +32,7 @@ public class MainViewModel extends BaseViewModel {
     @Inject
     MainViewModel(TMDbService tmDbService) {
         this.tmDbService = tmDbService;
+        this.errorsMediatorLiveData = new MediatorLiveData<>();
 
         this.config = new PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)
@@ -52,12 +50,8 @@ public class MainViewModel extends BaseViewModel {
         return moviesPagedList;
     }
 
-    public LiveData<Event<RetryableError>> getMovieListErrors() {
-        return movieListErrors;
-    }
-
-    public LiveData<Object> getInitialLoadUpdates() {
-        return initialLoadUpdates;
+    public LiveData<Event<Throwable>> getErrorsLiveData() {
+        return errorsMediatorLiveData;
     }
 
     private void setupMovies(Function<Integer, Single<MovieCollection>> request) {
@@ -69,8 +63,7 @@ public class MainViewModel extends BaseViewModel {
                 .setNotifyExecutor(MainThreadExecutor.getExecutor())
                 .build();
 
-        movieListErrors = dataSource.getErrors();
-        initialLoadUpdates = LiveDataReactiveStreams.fromPublisher(dataSource.getInitialLoadUpdates().toFlowable(BackpressureStrategy.BUFFER));
+        errorsMediatorLiveData.addSource(dataSource.getErrors(), errorsMediatorLiveData::setValue);
     }
 
     private Single<MovieCollection> getMovieRequest(String sort, int page) {

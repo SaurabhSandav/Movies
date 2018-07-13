@@ -13,15 +13,6 @@ public class Event<T> {
         return hasBeenHandled;
     }
 
-    public T getPayloadIfNotHandled() {
-        if (hasBeenHandled) {
-            return null;
-        } else {
-            hasBeenHandled = true;
-            return payload;
-        }
-    }
-
     public T getPayload() {
         hasBeenHandled = true;
         return payload;
