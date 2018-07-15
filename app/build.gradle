@@ -77,11 +77,11 @@ dependencies {
     // OkHttp
     implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
 
-    // Chuck
-    debugImplementation "com.readystatesoftware.chuck:library:$chuck_version"
-    releaseImplementation "com.readystatesoftware.chuck:library-no-op:$chuck_version"
-
     // LeakCanary
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$leak_canary_version"
     releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leak_canary_version"
+
+    // Stetho
+    implementation 'com.facebook.stetho:stetho:1.5.0'
+    implementation 'com.facebook.stetho:stetho-okhttp3:1.5.0'
 }

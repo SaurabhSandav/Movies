@@ -1,5 +1,6 @@
 package com.redridgeapps.movies;
 
+import com.facebook.stetho.Stetho;
 import com.redridgeapps.movies.di.DaggerAppComponent;
 import com.squareup.leakcanary.LeakCanary;
 
@@ -11,6 +12,8 @@ public class App extends DaggerApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Stetho.initializeWithDefaults(this);
         setupLeakCanary();
     }
 

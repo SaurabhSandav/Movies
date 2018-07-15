@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
 
-import com.readystatesoftware.chuck.ChuckInterceptor;
+import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.redridgeapps.movies.api.TMDbService;
 
 import javax.inject.Singleton;
@@ -34,16 +34,16 @@ public abstract class AppModule {
 
     @Provides
     @Singleton
-    public static ChuckInterceptor provideChuckInterceptor(Application app) {
-        return new ChuckInterceptor(app);
+    public static StethoInterceptor provideStethoInterceptor() {
+        return new StethoInterceptor();
     }
 
     @Provides
     @Singleton
-    public static OkHttpClient provideOkHttpClient(ChuckInterceptor chuckInterceptor) {
+    public static OkHttpClient provideOkHttpClient(StethoInterceptor stethoInterceptor) {
         return new OkHttpClient()
                 .newBuilder()
-                .addInterceptor(chuckInterceptor)
+                .addInterceptor(stethoInterceptor)
                 .build();
     }
 
