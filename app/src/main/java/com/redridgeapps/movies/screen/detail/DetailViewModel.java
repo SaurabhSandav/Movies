@@ -6,8 +6,10 @@ import android.arch.lifecycle.MutableLiveData;
 import com.redridgeapps.movies.api.TMDbService;
 import com.redridgeapps.movies.database.AppDatabase;
 import com.redridgeapps.movies.model.tmdb.Movie;
+import com.redridgeapps.movies.model.tmdb.MovieDetail;
 import com.redridgeapps.movies.screen.base.BaseViewModel;
 import com.redridgeapps.movies.util.Event;
+import com.redridgeapps.movies.util.RetryableError;
 
 import javax.inject.Inject;
 
@@ -18,6 +20,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class DetailViewModel extends BaseViewModel {
 
+    private MutableLiveData<MovieDetail> movieDetailLiveData;
     private MutableLiveData<Event<Throwable>> errorsLiveData;
     private TMDbService tmDbService;
     private AppDatabase database;
@@ -28,11 +31,18 @@ public class DetailViewModel extends BaseViewModel {
         this.tmDbService = tmDbService;
         this.database = database;
 
+        this.movieDetailLiveData = new MutableLiveData<>();
         this.errorsLiveData = new MutableLiveData<>();
     }
 
     public void setMovieId(Movie movie) {
         this.movie = movie;
+
+        fetchMovieDetail();
+    }
+
+    public LiveData<MovieDetail> getMovieDetailLiveData() {
+        return movieDetailLiveData;
     }
 
     public LiveData<Event<Throwable>> getErrorsLiveData() {
@@ -76,6 +86,24 @@ public class DetailViewModel extends BaseViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(() -> {
                 }, throwable -> errorsLiveData.postValue(new Event<>(throwable)));
+
+        getCompositeDisposable().add(disposable);
+    }
+
+    private void fetchMovieDetail() {
+        Disposable disposable = tmDbService.getMovieDetail(
+                movie.getId(),
+                TMDbService.TMDB_API_KEY,
+                TMDbService.INCLUDE_REVIEWS_AND_VIDEOS
+        ).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        movie -> movieDetailLiveData.postValue(movie),
+                        throwable -> {
+                            RetryableError retryableError = new RetryableError(throwable, this::fetchMovieDetail);
+                            errorsLiveData.postValue(new Event<>(retryableError));
+                        }
+                );
 
         getCompositeDisposable().add(disposable);
     }
