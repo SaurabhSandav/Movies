@@ -17,6 +17,9 @@
                 <item
                     android:id="@+id/sort_top_rated"
                     android:title="@string/activity_main_sort_top_rated" />
+                <item
+                    android:id="@+id/sort_favourites"
+                    android:title="@string/activity_main_sort_favourite" />
 
             </group>
 

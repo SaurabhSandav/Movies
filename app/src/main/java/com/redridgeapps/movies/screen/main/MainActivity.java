@@ -37,7 +37,10 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
 
         setupRecyclerView();
         observeErrors();
-        fetchMoviesIfConnected();
+
+        if (sort.equals(Constants.SORT_FAVOURITES)) {
+            showFavourites();
+        } else fetchMoviesIfConnected();
     }
 
     @Override
@@ -63,6 +66,9 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
             case Constants.SORT_TOP_RATED:
                 sortId = R.id.sort_top_rated;
                 break;
+            case Constants.SORT_FAVOURITES:
+                sortId = R.id.sort_favourites;
+                break;
             default:
                 throw new IllegalArgumentException("Invalid sort argument!");
         }
@@ -82,6 +88,9 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
             case R.id.sort_top_rated:
                 changeSort(item, Constants.SORT_TOP_RATED);
                 return true;
+            case R.id.sort_favourites:
+                changeSort(item, Constants.SORT_FAVOURITES);
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -92,7 +101,9 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
         this.sort = sort;
         prefs.edit().putString(Constants.KEY_SORT_MAIN, sort).apply();
 
-        fetchMoviesIfConnected();
+        if (sort.equals(Constants.SORT_FAVOURITES)) {
+            showFavourites();
+        } else fetchMoviesIfConnected();
     }
 
     private void setupRecyclerView() {

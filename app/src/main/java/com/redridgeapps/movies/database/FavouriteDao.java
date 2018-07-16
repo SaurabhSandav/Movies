@@ -8,10 +8,16 @@ import android.arch.persistence.room.Query;
 
 import com.redridgeapps.movies.model.tmdb.Movie;
 
+import java.util.List;
+
+import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 
 @Dao
 public interface FavouriteDao {
+
+    @Query("SELECT * FROM favourite_movies")
+    Flowable<List<Movie>> getFavouriteMovies();
 
     @Query("SELECT * FROM favourite_movies WHERE id = :id")
     Maybe<Movie> getFavouriteMovie(String id);
