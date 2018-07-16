@@ -1,6 +1,8 @@
 
 package com.redridgeapps.movies.model.tmdb;
 
+import android.support.v7.util.DiffUtil;
+
 import com.squareup.moshi.Json;
 
 public class VideoItem {
@@ -93,4 +95,24 @@ public class VideoItem {
         this.type = type;
     }
 
+    public String getYoutubeURL() {
+        return "https://www.youtube.com/watch?v=" + key;
+    }
+
+    public String getYoutubeThumbnail() {
+        return "https://img.youtube.com/vi/" + key + "/0.jpg";
+    }
+
+    public static final DiffUtil.ItemCallback<VideoItem> DIFF_CALLBACK = new DiffUtil.ItemCallback<VideoItem>() {
+
+        @Override
+        public boolean areItemsTheSame(VideoItem oldItem, VideoItem newItem) {
+            return oldItem.getId().equals(newItem.getId());
+        }
+
+        @Override
+        public boolean areContentsTheSame(VideoItem oldItem, VideoItem newItem) {
+            return true;
+        }
+    };
 }

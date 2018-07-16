@@ -2,14 +2,18 @@ package com.redridgeapps.movies.screen.detail;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.redridgeapps.movies.R;
 import com.redridgeapps.movies.databinding.ActivityDetailBinding;
 import com.redridgeapps.movies.model.tmdb.Movie;
+import com.redridgeapps.movies.model.tmdb.MovieDetail;
 import com.redridgeapps.movies.screen.base.BaseActivity;
 import com.redridgeapps.movies.util.RetryableError;
 
@@ -129,7 +133,26 @@ public class DetailActivity extends BaseActivity<DetailViewModel, ActivityDetail
 
     private void fetchMovies() {
         getViewModel().getMovieDetailLiveData().observe(this, movieDetail -> {
-            // TODO Display the data
+            if (movieDetail == null) return;
+
+            setupTrailers(movieDetail);
         });
+    }
+
+    private void setupTrailers(MovieDetail movieDetail) {
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(DetailActivity.this, LinearLayoutManager.HORIZONTAL, false);
+        VideoAdapter videoAdapter = new VideoAdapter(videoItem -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(videoItem.getYoutubeURL()));
+            startActivity(intent);
+        });
+        DividerItemDecoration itemDecoration = new DividerItemDecoration(DetailActivity.this, linearLayoutManager.getOrientation());
+
+        getBinding().mainDetail.movieVideos.setLayoutManager(linearLayoutManager);
+        getBinding().mainDetail.movieVideos.setAdapter(videoAdapter);
+        getBinding().mainDetail.movieVideos.setHasFixedSize(true);
+        getBinding().mainDetail.movieVideos.addItemDecoration(itemDecoration);
+
+        videoAdapter.submitList(movieDetail.getVideos().getResults());
     }
 }
