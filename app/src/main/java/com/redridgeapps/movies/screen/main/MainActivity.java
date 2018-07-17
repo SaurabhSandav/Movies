@@ -180,10 +180,7 @@ public class MainActivity extends BaseActivity<MainViewModel, ActivityMainBindin
     }
 
     private void showRetryableError(RetryableError error) {
-        String errorString = error.getMessage();
-        errorString = (errorString != null) ? errorString : getString(R.string.error_network_request_failure);
-
-        Snackbar.make(getBinding().getRoot(), errorString, Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(getBinding().getRoot(), R.string.error_network_request_failure, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.text_retry, view -> error.retry())
                 .show();
     }
