@@ -1,11 +1,15 @@
 
 package com.redridgeapps.movies.model.tmdb;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.squareup.moshi.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class Reviews {
+public class Reviews implements Parcelable {
 
     @Json(name = "page")
     private Integer page;
@@ -51,4 +55,39 @@ public class Reviews {
         this.totalResults = totalResults;
     }
 
+    public static final Parcelable.Creator<Reviews> CREATOR = new Parcelable.Creator<Reviews>() {
+        @Override
+        public Reviews createFromParcel(Parcel source) {
+            return new Reviews(source);
+        }
+
+        @Override
+        public Reviews[] newArray(int size) {
+            return new Reviews[size];
+        }
+    };
+
+    public Reviews() {
+    }
+
+    private Reviews(Parcel in) {
+        this.page = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.results = new ArrayList<>();
+        in.readList(this.results, ReviewItem.class.getClassLoader());
+        this.totalPages = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.totalResults = (Integer) in.readValue(Integer.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeValue(this.page);
+        dest.writeList(this.results);
+        dest.writeValue(this.totalPages);
+        dest.writeValue(this.totalResults);
+    }
 }

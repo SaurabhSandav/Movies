@@ -15,6 +15,7 @@ import com.redridgeapps.movies.databinding.ActivityDetailBinding;
 import com.redridgeapps.movies.model.tmdb.Movie;
 import com.redridgeapps.movies.model.tmdb.MovieDetail;
 import com.redridgeapps.movies.screen.base.BaseActivity;
+import com.redridgeapps.movies.screen.reviews.ReviewsActivity;
 import com.redridgeapps.movies.util.RetryableError;
 
 public class DetailActivity extends BaseActivity<DetailViewModel, ActivityDetailBinding> {
@@ -136,6 +137,14 @@ public class DetailActivity extends BaseActivity<DetailViewModel, ActivityDetail
             if (movieDetail == null) return;
 
             setupTrailers(movieDetail);
+
+            getBinding().mainDetail.labelVideos.setVisibility(View.VISIBLE);
+            getBinding().mainDetail.movieVideos.setVisibility(View.VISIBLE);
+
+            if (movieDetail.getReviews().getTotalResults() > 0) {
+                getBinding().mainDetail.btReadReviews.setVisibility(View.VISIBLE);
+                getBinding().mainDetail.btReadReviews.setOnClickListener(view -> setupReviews(movieDetail));
+            }
         });
     }
 
@@ -154,5 +163,9 @@ public class DetailActivity extends BaseActivity<DetailViewModel, ActivityDetail
         getBinding().mainDetail.movieVideos.addItemDecoration(itemDecoration);
 
         videoAdapter.submitList(movieDetail.getVideos().getResults());
+    }
+
+    private void setupReviews(MovieDetail movieDetail) {
+        startActivity(ReviewsActivity.createIntent(this, movieDetail.getReviews()));
     }
 }
